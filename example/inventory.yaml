@@ -1,0 +1,11 @@
+- id: "test"
+  host: "localhost"
+  port: 22
+  secretRef: some_test_creds
+  description: "Test host"
+  tags: ["test", "local", "linux"]
+- id: "test2"
+  host: "some.fancy.domain.com"
+  port: 422
+  secretRef: test_2_creds
+  tags: ["windows"]
