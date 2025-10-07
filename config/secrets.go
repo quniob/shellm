@@ -9,11 +9,22 @@ import (
 )
 
 type Secret struct {
-	ID          string `validate:"required" yaml:"id"`
-	Type        string `validate:"required,oneof=keyfile password" yaml:"type"`
-	User        string `yaml:"user" validate:"required"`
-	KeyfilePath string `validate:"required_if=Type keyfile" yaml:"filepath"`
-	Password    string `validate:"required_if=Type password" yaml:"password"`
+	ID             string `validate:"required" yaml:"id"`
+	Type           string `validate:"required,oneof=keyfile password" yaml:"type"`
+	User           string `validate:"required" yaml:"user"`
+	KeyfilePath    string `validate:"required_if=Type keyfile" yaml:"filepath"`
+	Password       string `validate:"excluded_with=PasswordEnvKey" yaml:"password"`
+	PasswordEnvKey string `validate:"excluded_with=Password" yaml:"passwordEnvKey"`
+}
+
+func secretPasswordValidation(sl validator.StructLevel) {
+	secret := sl.Current().Interface().(Secret)
+
+	if secret.Type == "password" {
+		if secret.Password == "" && secret.PasswordEnvKey == "" {
+			sl.ReportError(secret.Password, "Password", "Password", "required_oneof", "either Password or PasswordEnvKey must be set")
+		}
+	}
 }
 
 func LoadSecrets(path string) (map[string]Secret, error) {
@@ -21,6 +32,7 @@ func LoadSecrets(path string) (map[string]Secret, error) {
 	var data []Secret
 
 	v := validator.New()
+	v.RegisterStructValidation(secretPasswordValidation, Secret{})
 
 	fileContent, err := os.ReadFile(path)
 	if err != nil {

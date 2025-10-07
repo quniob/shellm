@@ -51,7 +51,15 @@ func (e ExecuteCommand) getSSHConfig(secret config.Secret) (*ssh.ClientConfig, e
 	var authMethod ssh.AuthMethod
 	switch secret.Type {
 	case "password":
-		authMethod = ssh.Password(secret.Password)
+		if secret.Password == "" && secret.PasswordEnvKey != "" {
+			passwd := os.Getenv(secret.PasswordEnvKey)
+			if passwd == "" {
+				return nil, fmt.Errorf("Password environment variable '%s' is not set", secret.PasswordEnvKey)
+			}
+			authMethod = ssh.Password(passwd)
+		} else {
+			authMethod = ssh.Password(secret.Password)
+		}
 	case "keyfile":
 		key, err := os.ReadFile(secret.KeyfilePath)
 		if err != nil {
