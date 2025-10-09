@@ -1,3 +1,4 @@
 example/*.dev.yaml
 .zed
 .env
+dist

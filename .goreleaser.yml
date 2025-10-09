@@ -1,0 +1,46 @@
+version: 2
+
+project_name: shellm
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: "tui"
+    main: ./cmd/tui
+    binary: shellm-tui
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+    goarch:
+      - amd64
+
+archives:
+  - id: default
+    formats:
+      - tar.gz
+      - zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+
+    files:
+      - LICENSE*
+      - README*
+    wrap_in_directory: true
+    strip_binary_directory: true
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
